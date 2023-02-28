@@ -287,14 +287,14 @@ export class AppSyncModelDartVisitor<
     classDeclarationBlock.addClassMember('classType', '', `const _${this.getModelName(model)}ModelType()`, { static: true, const: true });
     //model fields
     model.fields.forEach(field => {
-      this.generateModelField(field, '', classDeclarationBlock);
+      this.generateModelField(field, '', classDeclarationBlock, true);
     });
     //getInstanceType
     classDeclarationBlock.addClassMethod('getInstanceType', '', [], ' => classType;', { isBlock: false }, ['override']);
     //getters
     this.generateGetters(model, classDeclarationBlock);
     //constructor
-    this.generateConstructor(model, classDeclarationBlock);
+    this.generateConstructor(model, classDeclarationBlock, true);
     //equals
     this.generateEqualsMethodAndOperator(model, classDeclarationBlock);
     //hashCode
@@ -320,12 +320,12 @@ export class AppSyncModelDartVisitor<
       .annotate(['immutable']);
     //model fields
     model.fields.forEach(field => {
-      this.generateModelField(field, '', classDeclarationBlock);
+      this.generateModelField(field, '', classDeclarationBlock, false);
     });
     //getters
     this.generateGetters(model, classDeclarationBlock, includeIdGetter);
     //constructor
-    this.generateConstructor(model, classDeclarationBlock);
+    this.generateConstructor(model, classDeclarationBlock, false);
     //equals
     this.generateEqualsMethodAndOperator(model, classDeclarationBlock);
     //hashCode
@@ -470,11 +470,19 @@ export class AppSyncModelDartVisitor<
    * @param value
    * @param classDeclarationBlock
    */
-  protected generateModelField(field: CodeGenField, value: string, classDeclarationBlock: DartDeclarationBlock): void {
+  protected generateModelField(field: CodeGenField, value: string, classDeclarationBlock: DartDeclarationBlock, isModel : boolean): void {
     const fieldType = this.getNativeType(field);
     const fieldName = this.getFieldName(field);
-    if (this.isNullSafety() && fieldName !== 'id') {
-      classDeclarationBlock.addClassMember(`_${fieldName}`, `${fieldType}?`, value, { final: true });
+    if (this.isNullSafety()) {
+      if (fieldName === 'id') {
+        if (isModel) {
+          classDeclarationBlock.addClassMember(fieldName, fieldType, value, { final: true });
+        } else {
+          classDeclarationBlock.addClassMember(`${fieldName}`, `${fieldType}?`, value, { final: true });
+        }
+      } else {
+        classDeclarationBlock.addClassMember(`_${fieldName}`, `${fieldType}?`, value, { final: true });
+      }
     } else {
       classDeclarationBlock.addClassMember(fieldName, fieldType, value, { final: true });
     }
@@ -561,7 +569,7 @@ export class AppSyncModelDartVisitor<
     });
   }
 
-  protected generateConstructor(model: CodeGenModel, declarationBlock: DartDeclarationBlock): void {
+  protected generateConstructor(model: CodeGenModel, declarationBlock: DartDeclarationBlock, isModel: boolean): void {
     //Model._internal
     const args = this.isNullSafety()
       ? `{${model.fields
@@ -584,7 +592,11 @@ export class AppSyncModelDartVisitor<
       .map(field => {
         const fieldName = this.getFieldName(field);
         if (fieldName === 'id') {
-          return 'id: id == null ? UUID.getUUID() : id';
+          if (isModel) {
+            return 'id: id == null ? UUID.getUUID() : id';
+          } else {
+            return 'id: id';
+          }
         } else if (field.isList) {
           return `${fieldName}: ${fieldName} != null ? ${this.getNativeType(field)}.unmodifiable(${fieldName}) : ${fieldName}`;
         } else {
