@@ -731,10 +731,10 @@ export class AppSyncModelDartVisitor<
               return [
                 `${fieldName} = json['${varName}'] is List`,
                 indent(`? (json['${varName}'] as List)`),
-                this.isNullSafety() ? indent(`.where((e) => e?['serializedData'] != null)`, 2) : undefined,
+                this.isNullSafety() ? indent(`.where((e) => e != null)`, 2) : undefined,
                 indent(
                   `.map((e) => ${this.getNativeType({ ...field, isList: false })}.fromJson(new Map<String, dynamic>.from(e${
-                    this.isNullSafety() ? `['serializedData']` : ''
+                    this.isNullSafety() ? `` : ''
                   })))`,
                   2,
                 ),
@@ -745,10 +745,10 @@ export class AppSyncModelDartVisitor<
                 .join('\n');
             }
             return [
-              `${fieldName} = json['${varName}']${this.isNullSafety() ? `?['serializedData']` : ''} != null`,
+              `${fieldName} = json['${varName}']${this.isNullSafety() ? `` : ''} != null`,
               indent(
                 `? ${this.getNativeType(field)}.fromJson(new Map<String, dynamic>.from(json['${varName}']${
-                  this.isNullSafety() ? `['serializedData']` : ''
+                  this.isNullSafety() ? `` : ''
                 }))`,
               ),
               indent(`: null`),
@@ -777,7 +777,7 @@ export class AppSyncModelDartVisitor<
                 this.isNullSafety() ? indent(`.where((e) => e != null)`, 2) : undefined,
                 indent(
                   `.map((e) => ${this.getNativeType({ ...field, isList: false })}.fromJson(new Map<String, dynamic>.from(${
-                    this.isNonModelType(field) ? "e['serializedData']" : 'e'
+                    this.isNonModelType(field) ? 'e' : 'e'
                   })))`,
                   2,
                 ),
@@ -789,10 +789,10 @@ export class AppSyncModelDartVisitor<
             }
             // single non-model i.e. embedded
             return [
-              `${fieldName} = json['${varName}']${this.isNullSafety() ? `?['serializedData']` : ''} != null`,
+              `${fieldName} = json['${varName}']${this.isNullSafety() ? `` : ''} != null`,
               indent(
                 `? ${this.getNativeType(field)}.fromJson(new Map<String, dynamic>.from(json['${varName}']${
-                  this.isNullSafety() ? `['serializedData']` : ''
+                  this.isNullSafety() ? `` : ''
                 }))`,
               ),
               indent(`: null`),
