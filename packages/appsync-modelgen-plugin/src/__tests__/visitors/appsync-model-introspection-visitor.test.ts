@@ -1,14 +1,7 @@
 import { buildSchema, GraphQLSchema, parse, visit } from 'graphql';
 import { METADATA_SCALAR_MAP } from '../../scalars';
 import { directives, scalars } from '../../scalars/supported-directives';
-import {
-  CodeGenConnectionType,
-  CodeGenFieldConnectionBelongsTo,
-  CodeGenFieldConnectionHasMany,
-  CodeGenFieldConnectionHasOne,
-} from '../../utils/process-connections';
 import { AppSyncModelIntrospectionVisitor } from '../../visitors/appsync-model-introspection-visitor';
-import { CodeGenEnum, CodeGenField, CodeGenModel } from '../../visitors/appsync-visitor';
 
 const defaultModelIntropectionVisitorSettings = {
   isTimestampFieldsAdded: true,
@@ -216,5 +209,67 @@ describe('Primary Key Info tests', () => {
   it('should generate correct primary key info for model with/without custom primary key', () => {
     const visitor: AppSyncModelIntrospectionVisitor = getVisitor(schema);
     expect(visitor.generate()).toMatchSnapshot();
+  });
+});
+
+describe('Primary key info within a belongsTo model tests', () => {
+  const schema = /* GraphQL */ `
+    type Post @model {
+      postId: ID! @primaryKey
+      node: PostNode! @belongsTo(fields: ["postId"])
+      title: String!
+    }
+    type PostNode @model {
+      id: ID!
+      post: Post! @hasOne
+    }
+  `;
+  it('should generate correct primary key info for model when the primary key field is part of belongsTo connection field and custom PK is disabled', () => {
+    const visitor: AppSyncModelIntrospectionVisitor = getVisitor(schema, { respectPrimaryKeyAttributesOnConnectionField: false });
+    expect(visitor.generate()).toMatchSnapshot();
+  });
+});
+
+describe('schemas with pk on a belongsTo fk', () => {
+  it('works for v1', () => {
+    expect(getVisitor(/* GraphQL */ `
+      type Blog @model {
+        id: ID!
+        title: String
+        posts: [Post] @connection(fields: ["id"])
+      }
+
+      type Post @model @key(fields: ["blogId", "title", "description"]) {
+        id: ID!
+        blogId: ID!
+        title: String!
+        description: String!
+        blog: Blog @connection(fields: ["blogId"])
+      }
+    `, {
+      transformerVersion: 1,
+      usePipelinedTransformer: false,
+    }).generate()).toMatchSnapshot();
+  });
+
+  it('works for v2', () => {
+    expect(getVisitor(/* GraphQL */ `
+      type Blog @model {
+        id: ID!
+        title: String
+        posts: [Post] @hasMany(fields: ["id"])
+      }
+
+      type Post @model {
+        id: ID!
+        blogId: ID! @primaryKey(sortKeyFields: ["title", "description"])
+        title: String!
+        description: String!
+        blog: Blog @belongsTo(fields: ["blogId"])
+      }
+    `, {
+      transformerVersion: 2,
+      usePipelinedTransformer: true,
+    }).generate()).toMatchSnapshot();
   });
 });

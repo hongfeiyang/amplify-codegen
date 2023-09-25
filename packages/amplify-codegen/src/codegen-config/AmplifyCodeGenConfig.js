@@ -1,25 +1,27 @@
 const graphQLConfig = require('graphql-config');
-const { join, isAbsolute, relative } = require('path');
+const { isAbsolute, relative, join } = require('path');
 const slash = require('slash');
 const { graphQlToAmplifyConfig } = require('./utils');
+const fs =  require('fs-extra');
 
 class AmplifyCodeGenConfig {
-  constructor(context, withoutInit = false) {
+  static configFileName = '.graphqlconfig.yml';
+
+  constructor(projectPath) {
     try {
       this.gqlConfig = graphQLConfig.getGraphQLConfig();
       this.fixOldConfig();
     } catch (e) {
       if (e instanceof graphQLConfig.ConfigNotFoundError) {
-        const { amplify } = context;
-        let projectRoot;
-        if (!withoutInit) {
-          projectRoot = amplify.getEnvInfo().projectPath || process.cwd();
-        } else {
-          projectRoot = process.cwd();
-        }
+        const projectRoot = projectPath || process.cwd();
         const configPath = join(projectRoot, '.graphqlconfig.yml');
-        this.gqlConfig = new graphQLConfig.GraphQLConfig(null, configPath);
-        this.gqlConfig.config = {};
+        if(fs.existsSync(configPath)) {
+          this.gqlConfig = graphQLConfig.getGraphQLConfig(projectRoot);
+        }
+        else {
+          this.gqlConfig = new graphQLConfig.GraphQLConfig(null, configPath);
+          this.gqlConfig.config = {};
+        }
       } else {
         throw e;
       }

@@ -1,4 +1,4 @@
-const loadConfig = require('../../src/codegen-config');
+const { loadConfig } = require('../../src/codegen-config');
 const askShouldUpdateCode = require('../../src/walkthrough/questions/updateCode');
 const askShouldUpdateStatements = require('../../src/walkthrough/questions/updateDocs');
 
@@ -16,7 +16,7 @@ jest.mock('../../src/walkthrough/questions/updateCode');
 jest.mock('../../src/walkthrough/questions/updateDocs');
 
 jest.mock('graphql-transformer-core');
-jest.mock('amplify-cli-core', () => ({
+jest.mock('@aws-amplify/amplify-cli-core', () => ({
   pathManager: {
     getBackendDirPath: () => 'backend',
   },

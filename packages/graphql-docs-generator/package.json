@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/graphql-docs-generator",
-  "version": "3.0.3",
+  "version": "4.2.0",
   "description": "amplify graphql docs generator plugin",
   "repository": {
     "type": "git",
@@ -29,17 +29,16 @@
     "test-watch": "jest --watch",
     "build": "tsc",
     "watch": "tsc -w",
-    "clean": "rimraf ./lib"
+    "clean": "rimraf ./lib",
+    "extract-api": "ts-node ../../scripts/extract-api.ts"
   },
   "dependencies": {
     "graphql": "^15.5.0",
     "handlebars": "4.7.7",
-    "prettier": "^1.19.1",
     "yargs": "^15.1.0"
   },
   "devDependencies": {
-    "@types/node": "^10.17.13",
-    "@types/prettier": "^1.19.0"
+    "@types/node": "^10.17.13"
   },
   "publishConfig": {
     "access": "public"
@@ -54,6 +53,13 @@
     "collectCoverageFrom": [
       "src/**/*.ts"
     ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 64,
+        "functions": 71,
+        "lines": 80
+      }
+    },
     "moduleFileExtensions": [
       "ts",
       "tsx",

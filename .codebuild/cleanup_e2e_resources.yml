@@ -1,0 +1,15 @@
+version: 0.2
+env:
+  shell: bash
+  variables:
+    CI: true
+    CODEBUILD: true
+    
+phases:
+  build:
+    commands:
+      - source ./shared-scripts.sh && _cleanupE2EResources
+artifacts:
+  files:
+    - '**/*'
+  base-directory: $CODEBUILD_SRC_DIR/packages/amplify-codegen-e2e-tests/amplify-e2e-reports

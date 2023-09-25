@@ -5,13 +5,18 @@ import {
     DEFAULT_JS_CONFIG,
     createRandomName,
     addApiWithoutSchema,
-    updateApiSchema
+    updateApiSchema,
 } from "@aws-amplify/amplify-codegen-e2e-core";
 import { existsSync } from "fs";
 import path from 'path';
 import { isNotEmptyDir } from '../utils';
-import { deleteAmplifyProject, testAddCodegen, testSetupBeforeAddCodegen, 
-getGraphQLConfigFilePath, testValidGraphQLConfig } from '../codegen-tests-base';
+import {
+    deleteAmplifyProject,
+    testAddCodegen,
+    testSetupBeforeAddCodegen,
+    getGraphQLConfigFilePath,
+    testValidGraphQLConfig,
+} from '../codegen-tests-base';
 
 const schema = 'simple_model.graphql';
 
@@ -71,5 +76,9 @@ describe('codegen add tests - JS', () => {
 
     it(`Adding codegen works as expected`, async () => {
         await testAddCodegen(config, projectRoot, schema);
+    });
+
+    it(`supports add codegen with redundant region parameter`, async () => {
+        await testAddCodegen(config, projectRoot, schema, ['--region', 'us-fake-1']);
     });
 });

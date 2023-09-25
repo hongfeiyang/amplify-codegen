@@ -28,14 +28,16 @@ describe('Model Introspection Codegen test', () => {
       // Model introspection is generated at correct location
       expect(isNotEmptyDir(join(projectRoot, outputDir))).toBe(true);
     });
+
     it('should throw error when the output directory is not defined in the command', async () => {
       // init project and add API category
       await initJSProjectWithProfile(projectRoot);
       await addApiWithoutSchema(projectRoot, { apiName });
       await updateApiSchema(projectRoot, apiName, schema);
       //generate introspection schema
-      await expect(generateModelIntrospection(projectRoot)).rejects.toThrowError();
+      await generateModelIntrospection(projectRoot, { errMessage: 'Expected --output-dir flag to be set'});
     });
+
     it('should throw error if the GraphQL schema is invalid', async () => {
       const invalidSchema = 'modelgen/model_gen_schema_with_errors.graphql';
       // init project and add API category
@@ -44,7 +46,22 @@ describe('Model Introspection Codegen test', () => {
       await updateApiSchema(projectRoot, apiName, invalidSchema);
       const outputDir = 'output';
       //generate introspection schema
-      await expect(generateModelIntrospection(projectRoot, { outputDir })).rejects.toThrowError();
+      await generateModelIntrospection(projectRoot,{ outputDir, errMessage: 'Unknown type'});
+    });
+
+    it(`should handle a schema with connected PK`, async () => {
+      const schemaName = 'modelgen/schema_with_connected_pk.graphql';
+
+      // init project and add API category
+      await initJSProjectWithProfile(projectRoot);
+      await addApiWithoutSchema(projectRoot, { apiName });
+      await updateApiSchema(projectRoot, apiName, schemaName);
+
+      const outputDir = 'output';
+      //generate introspection schema
+      await expect(generateModelIntrospection(projectRoot, { outputDir })).resolves.not.toThrow();
+      // Model introspection is generated at correct location
+      expect(isNotEmptyDir(join(projectRoot, outputDir))).toBe(true);
     });
 });
 
